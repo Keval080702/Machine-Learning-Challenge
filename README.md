@@ -1,1 +1,197 @@
-# Machine-Learning-Challenge
+# ML Challenge Winter 2025 - Complete Solution
+
+This repository contains the complete source code for both Part 1 (Regression) and Part 2 (Rule Discovery) of the ML Challenge Winter 2025.
+
+## Project Structure
+
+```
+source_code/
+├── part1/                       # Part 1: Target01 Prediction (Regression)
+│   ├── main.py                  # Main pipeline entry point
+│   ├── config.py                # Configuration and hyperparameters
+│   ├── data_utils.py            # Data loading, splitting, and predictions
+│   ├── modeling.py              # Feature selection, training, and evaluation
+│   ├── visualization.py         # Plots and visualizations
+│   └── EDA.py                   # Exploratory Data Analysis
+│
+├── part2/                       # Part 2: Target02 Rule Discovery
+│   ├── framework_8.py           # Rule-based prediction system
+│   └── part2.py                 # Analysis and rule discovery notebook
+│
+├── requirements.txt             # Python dependencies
+└── README.md                    # This file
+```
+
+---
+
+## Part 1: Target01 Prediction (Regression)
+
+### Overview
+
+Predict the continuous variable `target01` using CatBoost with CV-based feature selection and Optuna hyperparameter tuning.
+
+### How to Run
+
+1. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Run the complete pipeline:**
+   ```bash
+   cd part1
+   python main.py
+   ```
+
+### Pipeline Steps
+
+1. Load and split data (80/20 train/test)
+2. Compute CV-based permutation importance for feature selection
+3. Select optimal number of features based on validation R²
+4. Train baseline model with 5-fold CV
+5. Tune hyperparameters with Optuna (500 trials)
+6. Train final model with best parameters
+7. Evaluate on test set (evaluated only once)
+8. Generate predictions → `EVAL_target01_8.csv`
+
+### Data Leakage Prevention
+
+- Test set is **never** used during training or tuning
+- All scaling is done **inside CV folds**
+- Feature selection uses CV-based importance on training data only
+- Test set is evaluated **only once** at the end
+
+### Model Performance
+
+- **Selected Features:** 9 out of 273
+- **CV Validation R²:** ~0.904
+- **Test R²:** ~0.907
+- **Overfitting:** ~4.4%
+
+---
+
+## Part 2: Target02 Rule Discovery
+
+### Overview
+
+Discover simple if-then rules to predict `target02` for deployment on edge devices with zero ML library dependencies.
+
+### How to Run
+
+**Option 1: Generate predictions directly**
+```bash
+python framework_8.py --eval_file_path ../problem_8/EVAL_8.csv
+```
+
+**Option 2: Run full analysis**
+```bash
+cd part2
+python part2.py
+```
+
+### Discovered Rules
+
+The system uses `feat_35` as a master switch with four distinct linear regimes:
+
+```
+if feat_35 ≤ 0.2:
+    target02 = -1.25*feat_31 + 0.65*feat_45 - 1.05*feat_181
+
+elif feat_35 ≤ 0.5:
+    target02 = 1.65*feat_31 + 1.75*feat_45 + 1.65*feat_181
+
+elif feat_35 ≤ 0.7:
+    target02 = 0.95*feat_31 + 1.75*feat_45 + 0.45*feat_181
+
+else:  # feat_35 > 0.7
+    target02 = 1.65*feat_31 - 1.25*feat_45 + 1.15*feat_181
+```
+
+### Model Performance
+
+- **R² Score:** 1.0000 (perfect accuracy)
+- **MSE:** 0.0000 (zero error)
+- **Complexity:** O(1) constant time
+- **Dependencies:** Zero (only basic arithmetic)
+- **Edge Device Ready:** ✅
+
+### Analysis Process
+
+1. Feature selection via correlation, mutual information, and decision tree importance
+2. Consensus analysis identified 4 key features: `feat_31`, `feat_35`, `feat_45`, `feat_181`
+3. Decision Tree visualization revealed critical thresholds on `feat_35`
+4. Piecewise linear regression within each region achieved perfect fit
+5. Rule extraction and validation
+
+---
+
+## Dependencies
+
+### Core Libraries
+- **numpy** ≥1.21.0 - Numerical operations
+- **pandas** ≥1.3.0 - Data manipulation
+- **scikit-learn** ≥1.0.0 - ML algorithms and metrics
+
+### Part 1 Specific
+- **catboost** ≥1.0.0 - Gradient boosting
+- **optuna** ≥3.0.0 - Hyperparameter optimization
+
+### Visualization
+- **matplotlib** ≥3.4.0 - Plotting
+- **seaborn** ≥0.11.0 - Statistical visualizations
+
+Install all dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Data Files
+
+Expected directory structure:
+```
+ML_2026/
+├── problem_8/
+│   ├── dataset_8.csv        # Training features (10,000 × 273)
+│   ├── target_8.csv         # Training targets (target01, target02)
+│   └── EVAL_8.csv           # Evaluation features (10,000 × 273)
+│
+└── source_code/
+    ├── part1/
+    └── part2/
+```
+
+---
+
+## Output Files
+
+### Part 1
+- `EVAL_target01_8.csv` - Predictions for target01
+- `visualizations/` - Feature importance plots, CV results, etc.
+
+### Part 2
+- `predictions_results_target02.csv` - Predictions for target02
+- `decision_tree_part2.png` - Tree structure showing thresholds
+- `mutual_features_comparison.png` - Feature selection comparison
+
+---
+
+## Key Insights
+
+### Part 1: Regression Challenge
+- Only 9 features are needed out of 273
+- CatBoost outperforms linear models
+- Proper CV prevents overfitting
+
+### Part 2: Rule Discovery
+- `target02` is generated by a deterministic rule system
+- Global linear regression fails (R² = 0.10)
+- Piecewise approach achieves perfect accuracy
+- Edge deployment requires only 4 arithmetic operations per prediction
+
+---
+
+## Author
+
+ML Challenge Winter 2025 - Problem 8
